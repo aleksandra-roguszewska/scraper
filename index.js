@@ -27,7 +27,8 @@ const disney = { path: "disney", name: "DISNEY+" };
 
 const vodServicesArray = [HBO, netflix, canalPlus, disney];
 
-const currentYear = "2023"; // Tu jeszcze moge zrobić,żeby ściągało zawsze najnowszy rok
+const currentDate = new Date();
+const currentYear = currentDate.getFullYear().toString();
 
 const getFilms = (baseUrl, vodService, year) => {
   const url = `${baseUrl}/${vodService.path}/film/${currentYear}`;
@@ -41,7 +42,11 @@ const getFilms = (baseUrl, vodService, year) => {
         if (counter === 10) return false;
         const title = $(this).find("h2").text();
         const rating = $(this).find(".rankingType__rate--value").text();
-        films.push({ title, rating, vodServiceName: vodService.name });
+        films.push({
+          title: title,
+          rating: rating,
+          vodServiceName: vodService.name,
+        });
         counter++;
       });
       return films;
@@ -75,11 +80,18 @@ const deduplicateFilms = (films) => {
 Promise.all(promises)
   .then((results) => {
     const scrapedFilms = results.flat();
+    return scrapedFilms;
+  })
+  .then((scrapedFilms) => {
     const deduplicatedFilms = deduplicateFilms(scrapedFilms);
-    const sortedDeduplicatedFilms = deduplicatedFilms.sort(
-      (a, b) => b.rating - a.rating
-    );
-    return csvWriter.writeRecords(sortedDeduplicatedFilms);
+    const sortedFilms = deduplicatedFilms.sort((a, b) => {
+      return (
+        parseFloat(b.rating.replace(",", ".")) -
+        parseFloat(a.rating.replace(",", "."))
+      );
+    });
+    console.log(sortedFilms);
+    return csvWriter.writeRecords(sortedFilms);
   })
   .then(() => {
     console.log("Success: Films saved to films.csv file");
