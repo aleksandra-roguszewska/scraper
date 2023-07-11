@@ -4,7 +4,7 @@
   "description": "Web scraper that downloads titles and rankings of movies from filmweb.pl",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon --delay 500ms index.js"
+    "start": "nodemon index.js"
   },
   "author": "",
   "license": "ISC",

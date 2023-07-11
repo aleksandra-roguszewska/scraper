@@ -55,11 +55,31 @@ const promises = vodServicesArray.map((vodService) => {
   return getFilms(baseUrl, vodService, currentYear);
 });
 
+const deduplicateFilms = (films) => {
+  const filmTitleObj = {};
+  films.forEach((film) => {
+    const { title } = film;
+    if (filmTitleObj.hasOwnProperty(title)) {
+      const existingFilm = filmTitleObj[title];
+      if (film.rating > existingFilm.rating) {
+        filmTitleObj[title] = film;
+      }
+    } else {
+      filmTitleObj[title] = film;
+    }
+  });
+  const uniqueFilms = Object.values(filmTitleObj);
+  return uniqueFilms;
+};
+
 Promise.all(promises)
   .then((results) => {
-    const unsortedFilms = results.flat();
-    const films = unsortedFilms.sort((a, b) => b.rating - a.rating);
-    return csvWriter.writeRecords(films);
+    const scrapedFilms = results.flat();
+    const deduplicatedFilms = deduplicateFilms(scrapedFilms);
+    const sortedDeduplicatedFilms = deduplicatedFilms.sort(
+      (a, b) => b.rating - a.rating
+    );
+    return csvWriter.writeRecords(sortedDeduplicatedFilms);
   })
   .then(() => {
     console.log("Success: Films saved to films.csv file");
